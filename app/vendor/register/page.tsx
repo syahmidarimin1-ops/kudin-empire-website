@@ -6,6 +6,7 @@ export default function VendorRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
 
   // ✅ Nombor rasmi WhatsApp syarikat
   const COMPANY_WHATSAPP = "60123945754";
@@ -14,6 +15,8 @@ export default function VendorRegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setVendorId(null);
+    setWhatsappUrl(null);
 
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -40,14 +43,12 @@ export default function VendorRegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Something went wrong");
+        throw new Error(data.error || "Pendaftaran gagal");
       }
 
-      // ✅ Vendor ID dari backend
-      const vendorId = data.vendorId;
-      setVendorId(vendorId);
+      const generatedVendorId = data.vendorId;
+      setVendorId(generatedVendorId);
 
-      // ✅ Mesej WhatsApp (ikut format yang Syahmi minta)
       const message = `
 Assalamualaikum,
 
@@ -60,21 +61,20 @@ Nama Kedai: ${shopName}
 Alamat: ${address}
 
 Vendor ID:
-${vendorId}
+${generatedVendorId}
 
 Sila tekan HANTAR dan simpan Vendor ID ini untuk rujukan akan datang.
 
 – Sistem Kudin Empire
       `.trim();
 
-      // ✅ Buka WhatsApp ke nombor rasmi syarikat
-      const whatsappUrl = `https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(
+      const waUrl = `https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(
         message
       )}`;
 
-      window.open(whatsappUrl, "_blank");
+      // ✅ SIMPAN URL (JANGAN AUTO OPEN)
+      setWhatsappUrl(waUrl);
 
-      // ✅ Reset borang selepas berjaya
       form.reset();
     } catch (err: any) {
       setError(err.message);
@@ -135,6 +135,23 @@ Sila tekan HANTAR dan simpan Vendor ID ini untuk rujukan akan datang.
         <div className="mt-8 bg-green-100 p-4 rounded text-center">
           <p className="font-semibold">Vendor ID anda:</p>
           <p className="text-2xl font-bold mt-2">{vendorId}</p>
+        </div>
+      )}
+
+      {whatsappUrl && (
+        <div className="mt-6 text-center">
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-green-600 text-white px-6 py-3 rounded font-semibold"
+          >
+            Hantar ke WhatsApp
+          </a>
+
+          <p className="text-sm text-gray-500 mt-2">
+            Sila klik butang di atas untuk hantar maklumat ke WhatsApp
+          </p>
         </div>
       )}
     </section>
